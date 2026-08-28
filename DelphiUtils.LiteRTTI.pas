@@ -177,6 +177,7 @@ type
     function GetNamingStyle: TNamingStyle;
     function GetPrefix: String;
     function GetSuffix: String;
+    function IsValidValue(Value: Cardinal): Boolean;
     function ReadInstance(const [ref] Instance): Cardinal;
 
     property Size: NativeUInt read GetSize;
@@ -652,6 +653,7 @@ type
     function GetNamingStyle: TNamingStyle;
     function GetPrefix: String;
     function GetSuffix: String;
+    function IsValidValue(Value: Cardinal): Boolean;
     function ReadInstance(const [ref] Instance): Cardinal;
     constructor Create(
       TypeInfo: PLiteRttiTypeInfo;
@@ -922,23 +924,30 @@ begin
     Error(reAssertionFailed);
   end;
 
-  // Assume the entire range as valid by default
-  FValidValues := [TypeInfo.OrdinalMinValue .. TypeInfo.OrdinalMaxValue];
+  // Due to the limitation of Delphi sets, we only support invalidating
+  // individual enum values in the range of 0..255
+  if (TypeInfo.OrdinalMinValue >= 0) and (TypeInfo.OrdinalMaxValue <= 255) then
+    FValidValues := [0 .. Byte(TypeInfo.OrdinalMaxValue)]
+  else
+    FValidValues := [0 .. 255];
 
   // Apply [MinValue(...)] overrides
   for Attribute in FAttributes do
     if Attribute.ParseMinValueAttribute(MinValueOverride) then
     begin
-      if MinValueOverride > 0 then
-        FValidValues := FValidValues - [0 .. MinValueOverride - 1];
+      if (MinValueOverride > 0) and (MinValueOverride <= 255) then
+        FValidValues := FValidValues - [0 .. Byte(MinValueOverride) - 1];
       Break;
     end;
 
   // Apply [ValidValues(...)] overrides
   for Attribute in FAttributes do
     if Attribute.ParseValidValuesAttribute(ValidValuesOverride) then
+    begin
       FValidValues := FValidValues * ValidValuesOverride;
-
+      Break;
+    end;
+  
   // Apply [NamingStyle(...)]
   for Attribute in FAttributes do
     if Attribute.ParseNamingStyleAttribute(FNamingStyle, FPrefix, FSuffix) then
@@ -968,6 +977,14 @@ end;
 function TRttixEnumType.GetValidValues;
 begin
   Result := FValidValues;
+end;
+
+function TRttixEnumType.IsValidValue;
+begin
+  if Value <= 255 then
+    Result := Byte(Value) in FValidValues
+  else
+    Result := Integer(Value) <= FTypeInfo.OrdinalMaxValue
 end;
 
 function TRttixEnumType.ReadInstance;

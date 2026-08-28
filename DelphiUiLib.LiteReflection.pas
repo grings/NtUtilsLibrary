@@ -257,7 +257,7 @@ var
 begin
   Value := EnumType.ReadInstance(Instance);
 
-  if Value in EnumType.ValidValues then
+  if EnumType.IsValidValue(Value) then
   begin
     Result := RttixPrettifyName(
       EnumType.TypeInfo.EnumerationName(Integer(Value)),
@@ -278,7 +278,6 @@ begin
       SizeOf(Word):     Size := isWord;
       SizeOf(Cardinal): Size := isCardinal;
     else
-      Size := isCardinal;
       Error(reAssertionFailed);
     end;
 
