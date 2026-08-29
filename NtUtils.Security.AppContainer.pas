@@ -431,11 +431,7 @@ begin
   end;
 
   // Open the repository key
-  Result := NtxOpenKey(hxKey, Path, Access);
-
-  // Retry with backup intent if necessary
-  if Result.Status = STATUS_ACCESS_DENIED then
-    Result := NtxOpenKey(hxKey, Path, Access, REG_OPTION_BACKUP_RESTORE);
+  Result := NtxOpenKeyWithBackupFallback(hxKey, Path, Access);
 end;
 
 function RtlxVerifyAppContainerMoniker(

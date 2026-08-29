@@ -180,8 +180,8 @@ begin
     Exit;
 
   // Open the user hive root
-  Result := NtxOpenKey(hxProfileKey, REG_PATH_USER + SidString,
-    KEY_QUERY_VALUE, REG_OPTION_BACKUP_RESTORE);
+  Result := NtxOpenKeyWithBackupFallback(hxProfileKey, REG_PATH_USER + '\' +
+    SidString, KEY_QUERY_VALUE);
 
   if not Result.IsSuccess then
     Exit;

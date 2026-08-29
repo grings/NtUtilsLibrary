@@ -452,14 +452,7 @@ var
   SubKeys: TArray<TNtxRegKey>;
   i: Integer;
 begin
-  // Since the backup/restore option always requires the privileges (as opposed
-  // to how file I/O works), try without it first
-  Result := NtxOpenKey(hxKey, Root, KEY_ENUMERATE_SUB_KEYS);
-
-  // If failed, retry with it
-  if Result.Status = STATUS_ACCESS_DENIED then
-    Result := NtxOpenKey(hxKey, Root, KEY_ENUMERATE_SUB_KEYS,
-      REG_OPTION_BACKUP_RESTORE);
+  Result := NtxOpenKeyWithBackupFallback(hxKey, Root, KEY_ENUMERATE_SUB_KEYS);
 
   if not Result.IsSuccess then
     Exit;

@@ -98,6 +98,17 @@ function NtxOpenKey(
   [opt] const ObjectAttributes: IObjectAttributes = nil
 ): TNtxStatus;
 
+// Open a key using backup/restore privileges if necessary
+[RequiredPrivilege(SE_BACKUP_PRIVILEGE, rpForBypassingChecks)]
+[RequiredPrivilege(SE_RESTORE_PRIVILEGE, rpForBypassingChecks)]
+function NtxOpenKeyWithBackupFallback(
+  out hxKey: IHandle;
+  const Name: String;
+  DesiredAccess: TRegKeyAccessMask;
+  OpenOptions: TRegOpenOptions = 0;
+  [opt] const ObjectAttributes: IObjectAttributes = nil
+): TNtxStatus;
+
 // Open a key in an (either normal or registry) transaction
 [RequiredPrivilege(SE_BACKUP_PRIVILEGE, rpForBypassingChecks)]
 [RequiredPrivilege(SE_RESTORE_PRIVILEGE, rpForBypassingChecks)]
@@ -455,6 +466,19 @@ begin
 
   if Result.IsSuccess then
     hxKey := Auto.CaptureHandle(hKey);
+end;
+
+function NtxOpenKeyWithBackupFallback;
+begin
+  // Since the backup/restore option always requires the privileges (as opposed
+  // to how file I/O works), try without it first
+  Result := NtxOpenKey(hxKey, Name, DesiredAccess, OpenOptions,
+    ObjectAttributes);
+
+  // If failed, retry with it
+  if Result.Status = STATUS_ACCESS_DENIED then
+    Result := NtxOpenKey(hxKey, Name, DesiredAccess, OpenOptions or
+      REG_OPTION_BACKUP_RESTORE, ObjectAttributes);
 end;
 
 function NtxOpenKeyTransacted;
