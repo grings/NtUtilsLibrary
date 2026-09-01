@@ -542,7 +542,7 @@ type
 
   [SDKName('Windows::Internal::StateRepository::PackageType')]
   [FlagName(PackageType_Main, 'Main')]
-  [FlagName(PackageType_Framework, 'Framrwork')]
+  [FlagName(PackageType_Framework, 'Framework')]
   [FlagName(PackageType_Resource, 'Resource')]
   [FlagName(PackageType_Bundle, 'Bundle')]
   [FlagName(PackageType_Xap, 'XAP')]
